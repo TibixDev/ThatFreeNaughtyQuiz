@@ -25,14 +25,18 @@
 
             <div v-else>
                 <h2 class="text-4xl font-semibold mb-6">Quiz Results</h2>
-                <div class="flex flex-row justify-between mb-8">
+                <div class="flex flex-row justify-between items-center mb-8">
                     <span class="block sm:hidden text-2xl font-bold" :style="{ color: state.p1.color }">{{ state.p1.name }}</span>
                     <span class="block sm:hidden text-2xl font-bold" :style="{ color: state.p2.color }">{{ state.p2.name }}</span>
+                    <label class="flex items-center cursor-pointer">
+                        <input type="checkbox" v-model="showOnlyCompatible" class="form-checkbox h-5 w-5 text-orange-400">
+                        <span class="ml-2 text-sm">Show only compatibilities</span>
+                    </label>
                 </div>
                 <div v-for="(category, categoryKey) in categories" :key="categoryKey" class="mb-8">
                     <h3 class="text-2xl font-semibold text-orange-400 mb-4">{{ category.title }}</h3>
                     <div class="bg-neutral-800 rounded-lg shadow-lg p-2 sm:p-6">
-                        <div v-for="question in getCategoryQuestions(categoryKey)" :key="question.id"
+                        <div v-for="question in getFilteredCategoryQuestions(categoryKey)" :key="question.id"
                             class="mb-4 pb-4 border-b-2 border-neutral-600/50 last:border-b-0">
                             <p class="font-medium mb-2 text-2xl">{{ question.maleQuestion }}</p>
                             <div class="flex justify-center sm:justify-between items-center w-full">
@@ -60,7 +64,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { storeToRefs } from "pinia";
 import { useQuizStore } from "@/store/quizstore";
@@ -77,6 +81,8 @@ onMounted(() => {
     if (!state.value.p1.quizData) $router.push("/");
 });
 
+const showOnlyCompatible = ref(true);
+
 function copyLink() {
     const encodedState = compressAndEncode(state.value);
     const link = `${window.location.origin}/shared?state=${encodedState}`;
@@ -90,8 +96,16 @@ function continueLocally() {
     $router.push("/quiz");
 }
 
-function getCategoryQuestions(category: string): Question[] {
-    return questions.filter(q => q.category === category);
+function getFilteredCategoryQuestions(category: string): Question[] {
+    const categoryQuestions = questions.filter(q => q.category === category);
+    if (!showOnlyCompatible.value) {
+        return categoryQuestions;
+    }
+    return categoryQuestions.filter(q => {
+        const p1Answer = state.value.p1.quizData[q.id];
+        const p2Answer = state.value.p2.quizData[q.id];
+        return p1Answer >= 3 && p2Answer >= 3;
+    });
 }
 
 function getAnswerEmoji(answer: number): string {
