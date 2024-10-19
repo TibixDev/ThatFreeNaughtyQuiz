@@ -17,7 +17,11 @@
 
             </div>
             <div class="flex flex-col gap-5 p-2">
-                <button class="bg-orange-500 generic-hover py-0.5 rounded-lg hidden" @click="debugFill">Debug Fill</button>
+                <button 
+                    class="bg-orange-500 generic-hover py-0.5 rounded-lg" 
+                    @click="debugFill"
+                    v-show="showDebugFill"
+                >Debug Fill</button>
                 <div
                     v-for="question, k of categoryQuestions"
                     :key="k"
@@ -121,7 +125,10 @@ const { state, activePlayer } = storeToRefs(store);
 
 onMounted(() => {
     if (!activePlayer.value) $router.push("/");
-})
+    
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+});
 
 const currentCategoryIdx = ref(0);
 const currentCategory = computed(() => categories[Object.keys(categories)[currentCategoryIdx.value]]);
@@ -136,6 +143,8 @@ const isCategoryUnfilled = computed(() => {
         .map(q => Object.keys(questionMapping).includes(String(q.id)))
         .some(q => q === false)
 })
+
+const showDebugFill = ref(false);
 
 function setAnswer(question: Question, answer: number) {
     questionMapping[question.id] = answer;
@@ -165,6 +174,22 @@ function finishQuiz() {
     console.log(activePlayer.value)
     state.value[activePlayer.value!].quizData = JSON.parse(JSON.stringify(questionMapping));
     $router.push("/finalize")
+}
+
+const pressedKeys = reactive(new Set());
+
+function handleKeyDown(event: KeyboardEvent) {
+    pressedKeys.add(event.key.toLowerCase());
+    if (pressedKeys.has('f') && pressedKeys.has('g')) {
+        showDebugFill.value = true;
+    }
+}
+
+function handleKeyUp(event: KeyboardEvent) {
+    pressedKeys.delete(event.key.toLowerCase());
+    if (!pressedKeys.has('f') || !pressedKeys.has('g')) {
+        showDebugFill.value = false;
+    }
 }
 </script>
 

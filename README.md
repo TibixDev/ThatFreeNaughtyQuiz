@@ -8,6 +8,8 @@
 
 An open-source, privacy-focused sexual compatibility quiz for couples, inspired by [That Sex Quiz](https://thatsexquiz.com/) but without any paywalls or scams.
 
+🌐 Try it now: [https://that-free-naughty-quiz.vercel.app/](https://that-free-naughty-quiz.vercel.app/)
+
 ## 🌟 Features
 
 - 🔒 Runs entirely locally - no data stored on servers
